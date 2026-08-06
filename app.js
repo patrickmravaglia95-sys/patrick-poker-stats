@@ -55,23 +55,86 @@ function render(rows){
 }
 
 function drawChart(rows){
-  const svg=document.getElementById("chart");
-  svg.innerHTML="";
-  if(!rows.length) return;
-  const W=900,H=300,pad=35;
-  const vals=rows.map(r=>Number(r.ending_bankroll));
-  let min=Math.min(...vals),max=Math.max(...vals);
-  if(min===max){min-=1;max+=1}
-  const x=i=>pad+(i/(Math.max(rows.length-1,1)))*(W-pad*2);
-  const y=v=>H-pad-((v-min)/(max-min))*(H-pad*2);
+  const svg = document.getElementById("chart");
+  svg.innerHTML = "";
 
-  [0,.5,1].forEach(t=>{
-    const yy=pad+t*(H-pad*2);
-    svg.insertAdjacentHTML("beforeend",`<line x1="${pad}" y1="${yy}" x2="${W-pad}" y2="${yy}" class="gridline"/>`);
+  if(!rows.length) return;
+
+  const W = 900;
+  const H = 300;
+  const pad = 45;
+
+  const vals = rows.map(r => profit(r));
+
+  let min = Math.min(...vals, 0);
+  let max = Math.max(...vals, 0);
+
+  if(min === max){
+    min -= 1;
+    max += 1;
+  }
+
+  const x = i =>
+    pad + (i / Math.max(rows.length - 1, 1)) * (W - pad * 2);
+
+  const y = v =>
+    H - pad - ((v - min) / (max - min)) * (H - pad * 2);
+
+  // Linha do zero
+  const zeroY = y(0);
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `<line
+      x1="${pad}"
+      y1="${zeroY}"
+      x2="${W-pad}"
+      y2="${zeroY}"
+      class="gridline"
+    />`
+  );
+
+  // Linhas horizontais auxiliares
+  [0, 0.5, 1].forEach(t => {
+    const yy = pad + t * (H - pad * 2);
+
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `<line
+        x1="${pad}"
+        y1="${yy}"
+        x2="${W-pad}"
+        y2="${yy}"
+        class="gridline"
+      />`
+    );
   });
-  const points=vals.map((v,i)=>`${x(i)},${y(v)}`).join(" ");
-  svg.insertAdjacentHTML("beforeend",`<polyline points="${points}" class="chartline"/>`);
-  vals.forEach((v,i)=>svg.insertAdjacentHTML("beforeend",`<circle cx="${x(i)}" cy="${y(v)}" r="4" class="dot"/>`));
+
+  // Linha do lucro
+  const points = vals
+    .map((v,i) => `${x(i)},${y(v)}`)
+    .join(" ");
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `<polyline points="${points}" class="chartline"/>`
+  );
+
+  // Pontos
+  vals.forEach((v,i) => {
+
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `<circle
+        cx="${x(i)}"
+        cy="${y(v)}"
+        r="5"
+        class="dot"
+      />`
+    );
+
+  });
+}
 }
 
 (async()=>{
