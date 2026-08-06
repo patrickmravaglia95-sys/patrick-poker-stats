@@ -2,25 +2,19 @@ export default async function handler(req, res) {
   try {
     const url =
       "https://pxfpolnkuejqbpsutfgs.supabase.co/rest/v1/sessions" +
-      "?select=date,hands,starting_bankroll,ending_bankroll,rakeback" +
+      "?select=date,hands,starting_bankroll,ending_bankroll" +
       "&order=date.asc";
 
     const response = await fetch(url, {
       headers: {
-        apikey: "sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS",
-        Authorization: "Bearer sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS"
+        apikey: "SUA_CHAVE_AQUI",
+        Authorization: "Bearer SUA_CHAVE_AQUI"
       }
     });
 
-  if (!response.ok) {
-  const errorText = await response.text();
-
-  console.error("Supabase:", response.status, errorText);
-
-  return res
-    .status(500)
-    .send(`Erro Supabase ${response.status}: ${errorText}`);
-}
+    if (!response.ok) {
+      return res.status(500).send("Erro ao consultar os dados.");
+    }
 
     const sessions = await response.json();
 
@@ -44,9 +38,10 @@ export default async function handler(req, res) {
     const profit = rows.reduce(
       (total, session) =>
         total +
-        Number(session.ending_bankroll || 0) -
-        Number(session.starting_bankroll || 0) +
-        Number(session.rakeback || 0),
+        (
+          Number(session.ending_bankroll || 0) -
+          Number(session.starting_bankroll || 0)
+        ),
       0
     );
 
