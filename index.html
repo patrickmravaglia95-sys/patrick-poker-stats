@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patrick Poker Stats</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <div class="brand">♠ PATRICK POKER STATS ♠</div>
+        <div class="subtitle">Resultados e evolução no poker</div>
+      </div>
+      <select id="monthSelect" aria-label="Selecionar mês"></select>
+    </header>
+
+    <section class="cards">
+      <article class="card">
+        <span>🃏 MÃOS NO MÊS</span>
+        <strong id="hands">—</strong>
+      </article>
+      <article class="card">
+        <span>💰 LUCRO NO POKER</span>
+        <strong id="profit">—</strong>
+      </article>
+      <article class="card">
+        <span>💵 RAKEBACK</span>
+        <strong id="rakeback">—</strong>
+      </article>
+      <article class="card">
+        <span>🏦 BANCA ATUAL</span>
+        <strong id="bankroll">—</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">Evolução da banca</div>
+      <div class="chart-wrap">
+        <svg id="chart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">Histórico diário</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Mãos</th><th>Lucro</th><th>Rakeback</th><th>Banca</th>
+            </tr>
+          </thead>
+          <tbody id="history"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Patrick Poker Stats</footer>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
