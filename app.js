@@ -2,7 +2,7 @@ const money = n => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD
 const number = n => new Intl.NumberFormat("pt-BR").format(Number(n)||0);
 
 async function loadSessions(){
-  const url = `${SUPABASE_URL}/rest/v1/Sessions?select=id,date,hands,starting_bankroll,ending_bankroll,rakeback&order=date.asc`;
+  const url = `${SUPABASE_URL}/rest/v1/%22Sessions%22?select=id,date,hands,starting_bankroll,ending_bankroll,rakeback&order=date.asc`;
   const res = await fetch(url,{headers:{
     apikey: SUPABASE_ANON_KEY,
     Authorization: `Bearer ${SUPABASE_ANON_KEY}`
