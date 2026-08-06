@@ -1,3 +1,4 @@
+```javascript
 export default async function handler(req, res) {
   try {
     const url =
@@ -8,7 +9,8 @@ export default async function handler(req, res) {
     const response = await fetch(url, {
       headers: {
         apikey: "sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS",
-        Authorization: "Bearer sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS"
+        Authorization:
+          "Bearer sb_publishable__kdshE2U56KZKDyobt8Rqw_z_9R-WxS"
       }
     });
 
@@ -38,10 +40,9 @@ export default async function handler(req, res) {
     const profit = rows.reduce(
       (total, session) =>
         total +
-        (
-           Number(row.ending_bankroll || 0) -
-    Number(row.starting_bankroll || 0)
-        ),
+        Number(session.ending_bankroll || 0) -
+        Number(session.starting_bankroll || 0) +
+        Number(session.rakeback || 0),
       0
     );
 
@@ -56,12 +57,11 @@ export default async function handler(req, res) {
     );
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).send(
       "Erro ao carregar os resultados."
     );
-
   }
 }
+```
