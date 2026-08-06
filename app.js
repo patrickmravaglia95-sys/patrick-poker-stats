@@ -33,12 +33,10 @@ function render(rows){
   const hands=rows.reduce((s,r)=>s+Number(r.hands||0),0);
   const profitTotal=rows.reduce((s,r)=>s+profit(r),0);
   const rake=rows.reduce((s,r)=>s+Number(r.rakeback||0),0);
-  const latest=rows.length?Number(rows[rows.length-1].ending_bankroll):0;
 
   document.getElementById("hands").textContent=number(hands);
   document.getElementById("profit").textContent=money(profitTotal);
   document.getElementById("rakeback").textContent=money(rake);
-  document.getElementById("bankroll").textContent=money(latest);
 
   const tbody=document.getElementById("history");
   tbody.innerHTML=rows.slice().reverse().map(r=>{
