@@ -40,8 +40,7 @@ function profit(row) {
 
   return (
     Number(row.ending_bankroll || 0) -
-    Number(row.starting_bankroll || 0) +
-    Number(row.rakeback || 0)
+    Number(row.starting_bankroll || 0)
   );
 
 }
