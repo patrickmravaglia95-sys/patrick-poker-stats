@@ -176,10 +176,6 @@ function drawChart(rows) {
   }
 
 
-  /*
-    Dimensões do gráfico
-  */
-
   const W = 900;
   const H = 330;
 
@@ -189,24 +185,12 @@ function drawChart(rows) {
   const bottom = 55;
 
 
-  /*
-    Lucros diários
-  */
-
   const vals = rows.map(r => profit(r));
 
-
-  /*
-    Encontrar mínimo e máximo
-  */
 
   let min = Math.min(...vals, 0);
   let max = Math.max(...vals, 0);
 
-
-  /*
-    Arredondar a escala para ficar mais bonita
-  */
 
   const range = max - min || 1;
 
@@ -225,10 +209,6 @@ function drawChart(rows) {
     max += step;
   }
 
-
-  /*
-    Funções de posição
-  */
 
   const chartWidth = W - left - right;
   const chartHeight = H - top - bottom;
@@ -249,11 +229,8 @@ function drawChart(rows) {
       chartHeight;
 
 
-  /*
-    EIXOS
-  */
-
   // Eixo vertical
+
   svg.insertAdjacentHTML(
     "beforeend",
     `
@@ -269,6 +246,7 @@ function drawChart(rows) {
 
 
   // Eixo horizontal
+
   svg.insertAdjacentHTML(
     "beforeend",
     `
@@ -283,9 +261,7 @@ function drawChart(rows) {
   );
 
 
-  /*
-    ESCALA VERTICAL
-  */
+  // Escala vertical
 
   for (
     let value = min;
@@ -295,7 +271,6 @@ function drawChart(rows) {
 
     const yy = y(value);
 
-    // Linha horizontal
     svg.insertAdjacentHTML(
       "beforeend",
       `
@@ -310,7 +285,6 @@ function drawChart(rows) {
     );
 
 
-    // Valor
     const label =
       value >= 0
         ? `$${value}`
@@ -330,12 +304,11 @@ function drawChart(rows) {
         </text>
       `
     );
+
   }
 
 
-  /*
-    EIXO ZERO
-  */
+  // Linha do zero
 
   if (min <= 0 && max >= 0) {
 
@@ -353,13 +326,11 @@ function drawChart(rows) {
         />
       `
     );
+
   }
 
 
-  /*
-    DATAS NO EIXO HORIZONTAL
-    Apenas o dia: 01, 02, 03...
-  */
+  // Datas no eixo horizontal
 
   rows.forEach((row, i) => {
 
@@ -372,7 +343,6 @@ function drawChart(rows) {
         .padStart(2, "0");
 
 
-    // Pequena marca no eixo
     svg.insertAdjacentHTML(
       "beforeend",
       `
@@ -387,7 +357,6 @@ function drawChart(rows) {
     );
 
 
-    // Dia
     svg.insertAdjacentHTML(
       "beforeend",
       `
@@ -405,9 +374,7 @@ function drawChart(rows) {
   });
 
 
-  /*
-    LINHA DO GRÁFICO
-  */
+  // Linha do gráfico
 
   const points = vals
     .map((value, i) =>
@@ -427,9 +394,7 @@ function drawChart(rows) {
   );
 
 
-  /*
-    PONTOS
-  */
+  // Pontos
 
   vals.forEach((value, i) => {
 
@@ -448,9 +413,7 @@ function drawChart(rows) {
   });
 
 
-  /*
-    TÍTULO DOS EIXOS
-  */
+  // Título do eixo vertical
 
   svg.insertAdjacentHTML(
     "beforeend",
@@ -467,6 +430,8 @@ function drawChart(rows) {
     `
   );
 
+
+  // Título do eixo horizontal
 
   svg.insertAdjacentHTML(
     "beforeend",
@@ -485,14 +450,119 @@ function drawChart(rows) {
 }
 
 
+/*
+  HISTÓRICO MENSAL
+*/
+
+function renderMonthlyHistory(rows) {
+
+  const tbody =
+    document.getElementById("monthlyHistory");
+
+  if (!tbody) {
+    return;
+  }
+
+
+  const months = {};
+
+
+  rows.forEach(r => {
+
+    const key = monthKey(r.date);
+
+
+    if (!months[key]) {
+
+      months[key] = {
+        hands: 0,
+        profit: 0
+      };
+
+    }
+
+
+    months[key].hands +=
+      Number(r.hands || 0);
+
+
+    months[key].profit +=
+      profit(r);
+
+  });
+
+
+  const monthList =
+    Object.keys(months)
+      .sort()
+      .reverse();
+
+
+  tbody.innerHTML =
+    monthList
+      .map(key => {
+
+        const data = months[key];
+
+
+        const cls =
+          data.profit >= 0
+            ? "profit-positive"
+            : "profit-negative";
+
+
+        return `
+          <tr>
+
+            <td>
+              ${monthLabel(key)}
+            </td>
+
+            <td>
+              ${number(data.hands)}
+            </td>
+
+            <td class="${cls}">
+              ${data.profit >= 0 ? "+" : ""}
+              ${money(data.profit)}
+            </td>
+
+          </tr>
+        `;
+
+      })
+      .join("");
+
+
+  if (!monthList.length) {
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="3" class="empty">
+          Nenhum resultado mensal registrado.
+        </td>
+      </tr>
+    `;
+
+  }
+
+}
+
+
+/*
+  INICIALIZAÇÃO
+*/
+
 (async () => {
 
   try {
 
     if (SUPABASE_URL.includes("COLE_AQUI")) {
+
       throw new Error(
         "Configure o Supabase em config.js."
       );
+
     }
 
 
@@ -507,9 +577,14 @@ function drawChart(rows) {
     render(rows);
 
 
+    // Histórico mensal
+    renderMonthlyHistory(rows);
+
+
   } catch (e) {
 
     console.error(e);
+
 
     document.getElementById("history").innerHTML =
       `
