@@ -7,8 +7,8 @@ export default async function handler(req, res) {
 
     const response = await fetch(url, {
       headers: {
-        apikey: "SUA_CHAVE_AQUI",
-        Authorization: "Bearer SUA_CHAVE_AQUI"
+        apikey: "sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS",
+        Authorization: "Bearer sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS"
       }
     });
 
