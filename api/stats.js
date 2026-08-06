@@ -39,9 +39,8 @@ export default async function handler(req, res) {
       (total, session) =>
         total +
         (
-          Number(session.ending_bankroll || 0) -
-          Number(session.starting_bankroll || 0) +
-          Number(session.rakeback || 0)
+           Number(row.ending_bankroll || 0) -
+    Number(row.starting_bankroll || 0)
         ),
       0
     );
