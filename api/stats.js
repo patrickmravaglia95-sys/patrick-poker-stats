@@ -35,15 +35,14 @@ export default async function handler(req, res) {
       0
     );
 
-    const profit = rows.reduce(
-      (total, session) =>
-        total +
-        (
-          Number(session.ending_bankroll || 0) -
-          Number(session.starting_bankroll || 0)
-        ),
-      0
-    );
+  const profit = rows.reduce(
+  (total, session) =>
+    total +
+    Number(session.ending_bankroll || 0) -
+    Number(session.starting_bankroll || 0) +
+    Number(session.rakeback || 0),
+  0
+);
 
     const formattedHands =
       hands.toLocaleString("pt-BR");
