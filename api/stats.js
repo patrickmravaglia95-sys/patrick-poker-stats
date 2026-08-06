@@ -12,9 +12,15 @@ export default async function handler(req, res) {
       }
     });
 
-    if (!response.ok) {
-      return res.status(500).send("Erro ao consultar os dados.");
-    }
+  if (!response.ok) {
+  const errorText = await response.text();
+
+  console.error("Supabase:", response.status, errorText);
+
+  return res
+    .status(500)
+    .send(`Erro Supabase ${response.status}: ${errorText}`);
+}
 
     const sessions = await response.json();
 
