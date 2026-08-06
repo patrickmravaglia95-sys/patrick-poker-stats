@@ -1,4 +1,3 @@
-```javascript
 export default async function handler(req, res) {
   try {
     const url =
@@ -8,8 +7,8 @@ export default async function handler(req, res) {
 
     const response = await fetch(url, {
       headers: {
-        apikey: "sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS",
-        Authorization: "Bearer sb_publishable__kdshE2U56KZkDyobt8Rqw_z_9R-WxS"
+        apikey: "sb_publishable__kdshE2U56KZKdyobt8Rqw_z_9R-WxS",
+        Authorization: "Bearer sb_publishable__kdshE2U56KZKdyobt8Rqw_z_9R-WxS"
       }
     });
 
@@ -65,4 +64,3 @@ export default async function handler(req, res) {
 
   }
 }
-```
