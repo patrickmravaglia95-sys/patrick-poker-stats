@@ -29,7 +29,11 @@ async function loadSessions() {
 
 
 function profit(row) {
-  return Number(row.ending_bankroll) - Number(row.starting_bankroll);
+  return (
+    Number(row.ending_bankroll || 0) -
+    Number(row.starting_bankroll || 0) +
+    Number(row.rakeback || 0)
+  );
 }
 
 
@@ -206,8 +210,6 @@ function drawChart(rows) {
   const zeroY = y(0);
 
 
-  // Linha do zero
-
   svg.insertAdjacentHTML(
     "beforeend",
     `
@@ -221,8 +223,6 @@ function drawChart(rows) {
     `
   );
 
-
-  // Linhas auxiliares
 
   [0, 0.5, 1].forEach(t => {
 
@@ -246,8 +246,6 @@ function drawChart(rows) {
   });
 
 
-  // Linha do lucro
-
   const points = vals
     .map((v, i) => `${x(i)},${y(v)}`)
     .join(" ");
@@ -263,8 +261,6 @@ function drawChart(rows) {
     `
   );
 
-
-  // Pontos
 
   vals.forEach((v, i) => {
 
