@@ -176,78 +176,243 @@ function drawChart(rows) {
   }
 
 
-  const W = 900;
-  const H = 300;
-  const pad = 45;
+  /*
+    Dimensões do gráfico
+  */
 
+  const W = 900;
+  const H = 330;
+
+  const left = 70;
+  const right = 25;
+  const top = 25;
+  const bottom = 55;
+
+
+  /*
+    Lucros diários
+  */
 
   const vals = rows.map(r => profit(r));
 
+
+  /*
+    Encontrar mínimo e máximo
+  */
 
   let min = Math.min(...vals, 0);
   let max = Math.max(...vals, 0);
 
 
+  /*
+    Arredondar a escala para ficar mais bonita
+  */
+
+  const range = max - min || 1;
+
+  const step = Math.max(
+    5,
+    Math.ceil(range / 5 / 5) * 5
+  );
+
+
+  min = Math.floor(min / step) * step;
+  max = Math.ceil(max / step) * step;
+
+
   if (min === max) {
-    min -= 1;
-    max += 1;
+    min -= step;
+    max += step;
   }
 
 
+  /*
+    Funções de posição
+  */
+
+  const chartWidth = W - left - right;
+  const chartHeight = H - top - bottom;
+
+
   const x = i =>
-    pad +
-    (i / Math.max(rows.length - 1, 1)) *
-      (W - pad * 2);
+    rows.length === 1
+      ? left + chartWidth / 2
+      : left +
+        (i / (rows.length - 1)) *
+          chartWidth;
 
 
-  const y = v =>
-    H -
-    pad -
-    ((v - min) / (max - min)) *
-      (H - pad * 2);
+  const y = value =>
+    top +
+    (max - value) /
+      (max - min) *
+      chartHeight;
 
 
-  const zeroY = y(0);
+  /*
+    EIXOS
+  */
 
-
+  // Eixo vertical
   svg.insertAdjacentHTML(
     "beforeend",
     `
       <line
-        x1="${pad}"
-        y1="${zeroY}"
-        x2="${W - pad}"
-        y2="${zeroY}"
-        class="gridline"
+        x1="${left}"
+        y1="${top}"
+        x2="${left}"
+        y2="${H - bottom}"
+        class="axis"
       />
     `
   );
 
 
-  [0, 0.5, 1].forEach(t => {
+  // Eixo horizontal
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `
+      <line
+        x1="${left}"
+        y1="${H - bottom}"
+        x2="${W - right}"
+        y2="${H - bottom}"
+        class="axis"
+      />
+    `
+  );
 
-    const yy =
-      pad +
-      t * (H - pad * 2);
 
+  /*
+    ESCALA VERTICAL
+  */
+
+  for (
+    let value = min;
+    value <= max;
+    value += step
+  ) {
+
+    const yy = y(value);
+
+    // Linha horizontal
     svg.insertAdjacentHTML(
       "beforeend",
       `
         <line
-          x1="${pad}"
+          x1="${left}"
           y1="${yy}"
-          x2="${W - pad}"
+          x2="${W - right}"
           y2="${yy}"
           class="gridline"
         />
       `
     );
 
+
+    // Valor
+    const label =
+      value >= 0
+        ? `$${value}`
+        : `-$${Math.abs(value)}`;
+
+
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <text
+          x="${left - 10}"
+          y="${yy + 4}"
+          text-anchor="end"
+          class="axis-label"
+        >
+          ${label}
+        </text>
+      `
+    );
+  }
+
+
+  /*
+    EIXO ZERO
+  */
+
+  if (min <= 0 && max >= 0) {
+
+    const zeroY = y(0);
+
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <line
+          x1="${left}"
+          y1="${zeroY}"
+          x2="${W - right}"
+          y2="${zeroY}"
+          class="zero-line"
+        />
+      `
+    );
+  }
+
+
+  /*
+    DATAS NO EIXO HORIZONTAL
+    Apenas o dia: 01, 02, 03...
+  */
+
+  rows.forEach((row, i) => {
+
+    const xx = x(i);
+
+    const day =
+      new Date(row.date + "T00:00:00")
+        .getDate()
+        .toString()
+        .padStart(2, "0");
+
+
+    // Pequena marca no eixo
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <line
+          x1="${xx}"
+          y1="${H - bottom}"
+          x2="${xx}"
+          y2="${H - bottom + 5}"
+          class="tick"
+        />
+      `
+    );
+
+
+    // Dia
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <text
+          x="${xx}"
+          y="${H - bottom + 22}"
+          text-anchor="middle"
+          class="axis-label"
+        >
+          ${day}
+        </text>
+      `
+    );
+
   });
 
 
+  /*
+    LINHA DO GRÁFICO
+  */
+
   const points = vals
-    .map((v, i) => `${x(i)},${y(v)}`)
+    .map((value, i) =>
+      `${x(i)},${y(value)}`
+    )
     .join(" ");
 
 
@@ -262,14 +427,18 @@ function drawChart(rows) {
   );
 
 
-  vals.forEach((v, i) => {
+  /*
+    PONTOS
+  */
+
+  vals.forEach((value, i) => {
 
     svg.insertAdjacentHTML(
       "beforeend",
       `
         <circle
           cx="${x(i)}"
-          cy="${y(v)}"
+          cy="${y(value)}"
           r="5"
           class="dot"
         />
@@ -277,6 +446,41 @@ function drawChart(rows) {
     );
 
   });
+
+
+  /*
+    TÍTULO DOS EIXOS
+  */
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `
+      <text
+        x="18"
+        y="${top + chartHeight / 2}"
+        text-anchor="middle"
+        class="axis-title"
+        transform="rotate(-90 18 ${top + chartHeight / 2})"
+      >
+        Lucro
+      </text>
+    `
+  );
+
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `
+      <text
+        x="${left + chartWidth / 2}"
+        y="${H - 8}"
+        text-anchor="middle"
+        class="axis-title"
+      >
+        Dia
+      </text>
+    `
+  );
 
 }
 
