@@ -574,11 +574,16 @@ function renderMonthlyHistory(rows) {
     }
 
 
-    render(rows);
+    const rows = await loadSessions();
 
+if (rows.length) {
+  fillMonths(rows);
+  render(rows.filter(r => monthKey(r.date) === monthKey(rows[rows.length - 1].date)));
+} else {
+  render([]);
+}
 
-    // Histórico mensal
-    renderMonthlyHistory(rows);
+renderMonthlyHistory(rows);
 
 
   } catch (e) {
