@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   try {
     const url =
       "https://pxfpolnkuejqbpsutfgs.supabase.co/rest/v1/sessions" +
-      "?select=date,hands,starting_bankroll,ending_bankroll" +
+      "?select=date,hands,starting_bankroll,ending_bankroll,rakeback" +
       "&order=date.asc";
 
     const response = await fetch(url, {
@@ -40,7 +40,8 @@ export default async function handler(req, res) {
         total +
         (
           Number(session.ending_bankroll || 0) -
-          Number(session.starting_bankroll || 0)
+          Number(session.starting_bankroll || 0) +
+          Number(session.rakeback || 0)
         ),
       0
     );
