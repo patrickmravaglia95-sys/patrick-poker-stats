@@ -8,6 +8,10 @@ const number = n =>
   new Intl.NumberFormat("pt-BR").format(Number(n) || 0);
 
 
+// ===============================
+// CARREGAR SESSÕES
+// ===============================
+
 async function loadSessions() {
 
   const url =
@@ -28,17 +32,29 @@ async function loadSessions() {
 }
 
 
+// ===============================
+// LUCRO
+// ===============================
+
 function profit(row) {
+
   return (
     Number(row.ending_bankroll || 0) -
     Number(row.starting_bankroll || 0) +
     Number(row.rakeback || 0)
   );
+
 }
 
 
+// ===============================
+// MÊS
+// ===============================
+
 function monthKey(date) {
+
   return date.slice(0, 7);
+
 }
 
 
@@ -52,128 +68,218 @@ function monthLabel(key) {
   })
     .format(new Date(Number(y), Number(m) - 1, 1))
     .replace(/^./, c => c.toUpperCase());
+
 }
 
+
+// ===============================
+// SELETOR DE MÊS
+// ===============================
 
 function fillMonths(rows) {
 
-  const select = document.getElementById("monthSelect");
+  const select =
+    document.getElementById("monthSelect");
 
   const months = [
-    ...new Set(rows.map(r => monthKey(r.date)))
+    ...new Set(
+      rows.map(r => monthKey(r.date))
+    )
   ].reverse();
 
+
   select.innerHTML = months
-    .map(m => `<option value="${m}">${monthLabel(m)}</option>`)
+    .map(
+      m =>
+        `<option value="${m}">
+          ${monthLabel(m)}
+        </option>`
+    )
     .join("");
 
+
   if (months.length) {
+
     select.value = months[0];
+
   }
+
 
   select.onchange = () => {
 
-    render(
+    const selectedMonth =
+      select.value;
+
+    const filteredRows =
       rows.filter(
-        r => monthKey(r.date) === select.value
-      )
-    );
+        r =>
+          monthKey(r.date) ===
+          selectedMonth
+      );
+
+    render(filteredRows);
 
   };
+
 }
 
+
+// ===============================
+// DASHBOARD DO MÊS
+// ===============================
 
 function render(rows) {
 
-  const hands = rows.reduce(
-    (s, r) => s + Number(r.hands || 0),
-    0
-  );
-
-  const profitTotal = rows.reduce(
-    (s, r) => s + profit(r),
-    0
-  );
-
-  const rake = rows.reduce(
-    (s, r) => s + Number(r.rakeback || 0),
-    0
-  );
+  const hands =
+    rows.reduce(
+      (s, r) =>
+        s + Number(r.hands || 0),
+      0
+    );
 
 
-  document.getElementById("hands").textContent =
-    number(hands);
-
-  document.getElementById("profit").textContent =
-    money(profitTotal);
-
-  document.getElementById("rakeback").textContent =
-    money(rake);
+  const profitTotal =
+    rows.reduce(
+      (s, r) =>
+        s + profit(r),
+      0
+    );
 
 
-  const tbody = document.getElementById("history");
+  const rake =
+    rows.reduce(
+      (s, r) =>
+        s + Number(r.rakeback || 0),
+      0
+    );
 
-  tbody.innerHTML =
-    rows
-      .slice()
-      .reverse()
-      .map(r => {
 
-        const p = profit(r);
+  // Cards
 
-        const cls =
-          p >= 0
-            ? "profit-positive"
-            : "profit-negative";
+  const handsElement =
+    document.getElementById("hands");
 
-        return `
-          <tr>
-            <td>
-              ${new Date(r.date + "T00:00:00")
-                .toLocaleDateString("pt-BR")}
-            </td>
+  const profitElement =
+    document.getElementById("profit");
 
-            <td>
-              ${number(r.hands)}
-            </td>
+  const rakebackElement =
+    document.getElementById("rakeback");
 
-            <td class="${cls}">
-              ${p >= 0 ? "+" : ""}${money(p)}
-            </td>
 
-            <td>
-              ${money(r.rakeback)}
-            </td>
+  if (handsElement) {
 
-            <td>
-              ${money(r.ending_bankroll)}
-            </td>
-          </tr>
-        `;
+    handsElement.textContent =
+      number(hands);
 
-      })
-      .join("")
-    ||
-    `<tr>
-      <td colspan="5" class="empty">
-        Nenhuma sessão registrada neste mês.
-      </td>
-    </tr>`;
+  }
 
+
+  if (profitElement) {
+
+    profitElement.textContent =
+      money(profitTotal);
+
+  }
+
+
+  if (rakebackElement) {
+
+    rakebackElement.textContent =
+      money(rake);
+
+  }
+
+
+  // Histórico diário
+
+  const tbody =
+    document.getElementById("history");
+
+
+  if (tbody) {
+
+    tbody.innerHTML =
+      rows
+        .slice()
+        .reverse()
+        .map(r => {
+
+          const p =
+            profit(r);
+
+          const cls =
+            p >= 0
+              ? "profit-positive"
+              : "profit-negative";
+
+
+          return `
+            <tr>
+
+              <td>
+                ${new Date(
+                  r.date + "T00:00:00"
+                ).toLocaleDateString("pt-BR")}
+              </td>
+
+              <td>
+                ${number(r.hands)}
+              </td>
+
+              <td class="${cls}">
+                ${p >= 0 ? "+" : ""}
+                ${money(p)}
+              </td>
+
+              <td>
+                ${money(r.rakeback)}
+              </td>
+
+              <td>
+                ${money(r.ending_bankroll)}
+              </td>
+
+            </tr>
+          `;
+
+        })
+        .join("")
+      ||
+      `
+        <tr>
+          <td colspan="5" class="empty">
+            Nenhuma sessão registrada neste mês.
+          </td>
+        </tr>
+      `;
+
+  }
+
+
+  // Gráfico
 
   drawChart(rows);
+
 }
 
 
+// ===============================
+// GRÁFICO
+// ===============================
+
 function drawChart(rows) {
 
-  const svg = document.getElementById("chart");
+  const svg =
+    document.getElementById("chart");
+
+
+  if (!svg) return;
+
 
   svg.innerHTML = "";
 
-  if (!rows.length) {
-    return;
-  }
+
+  if (!rows.length) return;
 
 
   const W = 900;
@@ -185,48 +291,78 @@ function drawChart(rows) {
   const bottom = 55;
 
 
-  const vals = rows.map(r => profit(r));
+  const vals =
+    rows.map(r => profit(r));
 
 
-  let min = Math.min(...vals, 0);
-  let max = Math.max(...vals, 0);
+  let min =
+    Math.min(...vals, 0);
+
+  let max =
+    Math.max(...vals, 0);
 
 
-  const range = max - min || 1;
-
-  const step = Math.max(
-    5,
-    Math.ceil(range / 5 / 5) * 5
-  );
+  const range =
+    max - min || 1;
 
 
-  min = Math.floor(min / step) * step;
-  max = Math.ceil(max / step) * step;
+  const step =
+    Math.max(
+      5,
+      Math.ceil(range / 5 / 5) * 5
+    );
+
+
+  min =
+    Math.floor(min / step) * step;
+
+  max =
+    Math.ceil(max / step) * step;
 
 
   if (min === max) {
+
     min -= step;
     max += step;
+
   }
 
 
-  const chartWidth = W - left - right;
-  const chartHeight = H - top - bottom;
+  const chartWidth =
+    W - left - right;
+
+  const chartHeight =
+    H - top - bottom;
 
 
-  const x = i =>
-    rows.length === 1
-      ? left + chartWidth / 2
-      : left +
-        (i / (rows.length - 1)) *
-          chartWidth;
+  const x = i => {
+
+    if (rows.length === 1) {
+
+      return left +
+        chartWidth / 2;
+
+    }
+
+    return (
+      left +
+      (i / (rows.length - 1)) *
+      chartWidth
+    );
+
+  };
 
 
-  const y = value =>
-    top +
-    (max - value) /
+  const y = value => {
+
+    return (
+      top +
+      (max - value) /
       (max - min) *
-      chartHeight;
+      chartHeight
+    );
+
+  };
 
 
   // Eixo vertical
@@ -269,7 +405,9 @@ function drawChart(rows) {
     value += step
   ) {
 
-    const yy = y(value);
+    const yy =
+      y(value);
+
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -310,9 +448,14 @@ function drawChart(rows) {
 
   // Linha do zero
 
-  if (min <= 0 && max >= 0) {
+  if (
+    min <= 0 &&
+    max >= 0
+  ) {
 
-    const zeroY = y(0);
+    const zeroY =
+      y(0);
+
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -334,10 +477,14 @@ function drawChart(rows) {
 
   rows.forEach((row, i) => {
 
-    const xx = x(i);
+    const xx =
+      x(i);
+
 
     const day =
-      new Date(row.date + "T00:00:00")
+      new Date(
+        row.date + "T00:00:00"
+      )
         .getDate()
         .toString()
         .padStart(2, "0");
@@ -376,11 +523,13 @@ function drawChart(rows) {
 
   // Linha do gráfico
 
-  const points = vals
-    .map((value, i) =>
-      `${x(i)},${y(value)}`
-    )
-    .join(" ");
+  const points =
+    vals
+      .map(
+        (value, i) =>
+          `${x(i)},${y(value)}`
+      )
+      .join(" ");
 
 
   svg.insertAdjacentHTML(
@@ -396,24 +545,26 @@ function drawChart(rows) {
 
   // Pontos
 
-  vals.forEach((value, i) => {
+  vals.forEach(
+    (value, i) => {
 
-    svg.insertAdjacentHTML(
-      "beforeend",
-      `
-        <circle
-          cx="${x(i)}"
-          cy="${y(value)}"
-          r="5"
-          class="dot"
-        />
-      `
-    );
+      svg.insertAdjacentHTML(
+        "beforeend",
+        `
+          <circle
+            cx="${x(i)}"
+            cy="${y(value)}"
+            r="5"
+            class="dot"
+          />
+        `
+      );
 
-  });
+    }
+  );
 
 
-  // Título do eixo vertical
+  // Título eixo vertical
 
   svg.insertAdjacentHTML(
     "beforeend",
@@ -423,7 +574,13 @@ function drawChart(rows) {
         y="${top + chartHeight / 2}"
         text-anchor="middle"
         class="axis-title"
-        transform="rotate(-90 18 ${top + chartHeight / 2})"
+        transform="
+          rotate(
+            -90
+            18
+            ${top + chartHeight / 2}
+          )
+        "
       >
         Lucro
       </text>
@@ -431,7 +588,7 @@ function drawChart(rows) {
   );
 
 
-  // Título do eixo horizontal
+  // Título eixo horizontal
 
   svg.insertAdjacentHTML(
     "beforeend",
@@ -450,18 +607,19 @@ function drawChart(rows) {
 }
 
 
-/*
-  HISTÓRICO MENSAL
-*/
+// ===============================
+// HISTÓRICO MENSAL
+// ===============================
 
 function renderMonthlyHistory(rows) {
 
   const tbody =
-    document.getElementById("monthlyHistory");
+    document.getElementById(
+      "monthlyHistory"
+    );
 
-  if (!tbody) {
-    return;
-  }
+
+  if (!tbody) return;
 
 
   const months = {};
@@ -469,7 +627,8 @@ function renderMonthlyHistory(rows) {
 
   rows.forEach(r => {
 
-    const key = monthKey(r.date);
+    const key =
+      monthKey(r.date);
 
 
     if (!months[key]) {
@@ -502,7 +661,8 @@ function renderMonthlyHistory(rows) {
     monthList
       .map(key => {
 
-        const data = months[key];
+        const data =
+          months[key];
 
 
         const cls =
@@ -549,15 +709,17 @@ function renderMonthlyHistory(rows) {
 }
 
 
-/*
-  INICIALIZAÇÃO
-*/
+// ===============================
+// INICIALIZAÇÃO
+// ===============================
 
 (async () => {
 
   try {
 
-    if (SUPABASE_URL.includes("COLE_AQUI")) {
+    if (
+      SUPABASE_URL.includes("COLE_AQUI")
+    ) {
 
       throw new Error(
         "Configure o Supabase em config.js."
@@ -566,24 +728,51 @@ function renderMonthlyHistory(rows) {
     }
 
 
-    const rows = await loadSessions();
+    const rows =
+      await loadSessions();
+
+
+    // Histórico mensal recebe
+    // TODAS as sessões
+
+    renderMonthlyHistory(rows);
 
 
     if (rows.length) {
+
+      // Cria o seletor de meses
+
       fillMonths(rows);
+
+
+      // Pega o mês mais recente
+
+      const latestMonth =
+        monthKey(
+          rows[rows.length - 1].date
+        );
+
+
+      // Filtra somente o mês atual
+
+      const currentRows =
+        rows.filter(
+          r =>
+            monthKey(r.date) ===
+            latestMonth
+        );
+
+
+      // Dashboard recebe
+      // SOMENTE o mês atual
+
+      render(currentRows);
+
+    } else {
+
+      render([]);
+
     }
-
-
-    const rows = await loadSessions();
-
-if (rows.length) {
-  fillMonths(rows);
-  render(rows.filter(r => monthKey(r.date) === monthKey(rows[rows.length - 1].date)));
-} else {
-  render([]);
-}
-
-renderMonthlyHistory(rows);
 
 
   } catch (e) {
@@ -591,14 +780,23 @@ renderMonthlyHistory(rows);
     console.error(e);
 
 
-    document.getElementById("history").innerHTML =
-      `
+    const history =
+      document.getElementById(
+        "history"
+      );
+
+
+    if (history) {
+
+      history.innerHTML = `
         <tr>
           <td colspan="5" class="empty">
             ${e.message}
           </td>
         </tr>
       `;
+
+    }
 
   }
 
