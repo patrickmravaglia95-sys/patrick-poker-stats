@@ -271,15 +271,11 @@ function drawChart(rows) {
   const svg =
     document.getElementById("chart");
 
-
   if (!svg) return;
-
 
   svg.innerHTML = "";
 
-
   if (!rows.length) return;
-
 
   const W = 900;
   const H = 330;
@@ -290,8 +286,19 @@ function drawChart(rows) {
   const bottom = 55;
 
 
-  const vals =
-    rows.map(r => profit(r));
+  // ===============================
+  // LUCRO ACUMULADO NO MÊS
+  // ===============================
+
+  let accumulated = 0;
+
+  const vals = rows.map(r => {
+
+    accumulated += profit(r);
+
+    return accumulated;
+
+  });
 
 
   let min =
@@ -300,10 +307,8 @@ function drawChart(rows) {
   let max =
     Math.max(...vals, 0);
 
-
   const range =
     max - min || 1;
-
 
   const step =
     Math.max(
@@ -311,13 +316,11 @@ function drawChart(rows) {
       Math.ceil(range / 5 / 5) * 5
     );
 
-
   min =
     Math.floor(min / step) * step;
 
   max =
     Math.ceil(max / step) * step;
-
 
   if (min === max) {
 
@@ -407,7 +410,6 @@ function drawChart(rows) {
     const yy =
       y(value);
 
-
     svg.insertAdjacentHTML(
       "beforeend",
       `
@@ -421,12 +423,10 @@ function drawChart(rows) {
       `
     );
 
-
     const label =
       value >= 0
         ? `$${value}`
         : `-$${Math.abs(value)}`;
-
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -455,7 +455,6 @@ function drawChart(rows) {
     const zeroY =
       y(0);
 
-
     svg.insertAdjacentHTML(
       "beforeend",
       `
@@ -479,7 +478,6 @@ function drawChart(rows) {
     const xx =
       x(i);
 
-
     const day =
       new Date(
         row.date + "T00:00:00"
@@ -487,7 +485,6 @@ function drawChart(rows) {
         .getDate()
         .toString()
         .padStart(2, "0");
-
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -501,7 +498,6 @@ function drawChart(rows) {
         />
       `
     );
-
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -529,7 +525,6 @@ function drawChart(rows) {
           `${x(i)},${y(value)}`
       )
       .join(" ");
-
 
   svg.insertAdjacentHTML(
     "beforeend",
@@ -581,7 +576,7 @@ function drawChart(rows) {
           )
         "
       >
-        Lucro
+        Lucro acumulado
       </text>
     `
   );
@@ -604,7 +599,6 @@ function drawChart(rows) {
   );
 
 }
-
 
 // ===============================
 // HISTÓRICO MENSAL
