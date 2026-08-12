@@ -86,7 +86,6 @@ function fillMonths(rows) {
     )
   ].reverse();
 
-
   select.innerHTML = months
     .map(
       m =>
@@ -96,13 +95,11 @@ function fillMonths(rows) {
     )
     .join("");
 
-
   if (months.length) {
 
     select.value = months[0];
 
   }
-
 
   select.onchange = () => {
 
@@ -136,7 +133,6 @@ function render(rows) {
       0
     );
 
-
   const profitTotal =
     rows.reduce(
       (s, r) =>
@@ -144,14 +140,12 @@ function render(rows) {
       0
     );
 
-
   const rake =
     rows.reduce(
       (s, r) =>
         s + Number(r.rakeback || 0),
       0
     );
-
 
   // Cards
 
@@ -164,7 +158,6 @@ function render(rows) {
   const rakebackElement =
     document.getElementById("rakeback");
 
-
   if (handsElement) {
 
     handsElement.textContent =
@@ -172,14 +165,12 @@ function render(rows) {
 
   }
 
-
   if (profitElement) {
 
     profitElement.textContent =
       money(profitTotal);
 
   }
-
 
   if (rakebackElement) {
 
@@ -193,7 +184,6 @@ function render(rows) {
 
   const tbody =
     document.getElementById("history");
-
 
   if (tbody) {
 
@@ -210,7 +200,6 @@ function render(rows) {
             p >= 0
               ? "profit-positive"
               : "profit-negative";
-
 
           return `
             <tr>
@@ -271,15 +260,11 @@ function drawChart(rows) {
   const svg =
     document.getElementById("chart");
 
-
   if (!svg) return;
-
 
   svg.innerHTML = "";
 
-
   if (!rows.length) return;
-
 
   const W = 900;
   const H = 330;
@@ -290,8 +275,19 @@ function drawChart(rows) {
   const bottom = 55;
 
 
-  const vals =
-    rows.map(r => profit(r));
+  // ===============================
+  // LUCRO ACUMULADO
+  // ===============================
+
+  let accumulated = 0;
+
+  const vals = rows.map(r => {
+
+    accumulated += profit(r);
+
+    return accumulated;
+
+  });
 
 
   let min =
@@ -300,10 +296,8 @@ function drawChart(rows) {
   let max =
     Math.max(...vals, 0);
 
-
   const range =
     max - min || 1;
-
 
   const step =
     Math.max(
@@ -311,13 +305,11 @@ function drawChart(rows) {
       Math.ceil(range / 5 / 5) * 5
     );
 
-
   min =
     Math.floor(min / step) * step;
 
   max =
     Math.ceil(max / step) * step;
-
 
   if (min === max) {
 
@@ -407,7 +399,6 @@ function drawChart(rows) {
     const yy =
       y(value);
 
-
     svg.insertAdjacentHTML(
       "beforeend",
       `
@@ -421,12 +412,10 @@ function drawChart(rows) {
       `
     );
 
-
     const label =
       value >= 0
         ? `$${value}`
         : `-$${Math.abs(value)}`;
-
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -455,7 +444,6 @@ function drawChart(rows) {
     const zeroY =
       y(0);
 
-
     svg.insertAdjacentHTML(
       "beforeend",
       `
@@ -479,7 +467,6 @@ function drawChart(rows) {
     const xx =
       x(i);
 
-
     const day =
       new Date(
         row.date + "T00:00:00"
@@ -487,7 +474,6 @@ function drawChart(rows) {
         .getDate()
         .toString()
         .padStart(2, "0");
-
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -501,7 +487,6 @@ function drawChart(rows) {
         />
       `
     );
-
 
     svg.insertAdjacentHTML(
       "beforeend",
@@ -529,7 +514,6 @@ function drawChart(rows) {
           `${x(i)},${y(value)}`
       )
       .join(" ");
-
 
   svg.insertAdjacentHTML(
     "beforeend",
@@ -581,7 +565,7 @@ function drawChart(rows) {
           )
         "
       >
-        Lucro
+        Lucro acumulado
       </text>
     `
   );
@@ -617,18 +601,14 @@ function renderMonthlyHistory(rows) {
       "monthlyHistory"
     );
 
-
   if (!tbody) return;
 
-
   const months = {};
-
 
   rows.forEach(r => {
 
     const key =
       monthKey(r.date);
-
 
     if (!months[key]) {
 
@@ -639,22 +619,18 @@ function renderMonthlyHistory(rows) {
 
     }
 
-
     months[key].hands +=
       Number(r.hands || 0);
-
 
     months[key].profit +=
       profit(r);
 
   });
 
-
   const monthList =
     Object.keys(months)
       .sort()
       .reverse();
-
 
   tbody.innerHTML =
     monthList
@@ -663,12 +639,10 @@ function renderMonthlyHistory(rows) {
         const data =
           months[key];
 
-
         const cls =
           data.profit >= 0
             ? "profit-positive"
             : "profit-negative";
-
 
         return `
           <tr>
@@ -691,7 +665,6 @@ function renderMonthlyHistory(rows) {
 
       })
       .join("");
-
 
   if (!monthList.length) {
 
@@ -726,16 +699,13 @@ function renderMonthlyHistory(rows) {
 
     }
 
-
     const rows =
       await loadSessions();
-
 
     // Histórico mensal recebe
     // TODAS as sessões
 
     renderMonthlyHistory(rows);
-
 
     if (rows.length) {
 
@@ -743,14 +713,12 @@ function renderMonthlyHistory(rows) {
 
       fillMonths(rows);
 
-
       // Pega o mês mais recente
 
       const latestMonth =
         monthKey(
           rows[rows.length - 1].date
         );
-
 
       // Filtra somente o mês atual
 
@@ -760,7 +728,6 @@ function renderMonthlyHistory(rows) {
             monthKey(r.date) ===
             latestMonth
         );
-
 
       // Dashboard recebe
       // SOMENTE o mês atual
@@ -773,17 +740,14 @@ function renderMonthlyHistory(rows) {
 
     }
 
-
   } catch (e) {
 
     console.error(e);
-
 
     const history =
       document.getElementById(
         "history"
       );
-
 
     if (history) {
 
@@ -800,3 +764,4 @@ function renderMonthlyHistory(rows) {
   }
 
 })();
+```
