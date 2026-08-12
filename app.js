@@ -1,425 +1,574 @@
-const money = n =>new Intl.NumberFormat("en-US", {style: "currency",currency: "USD"}).format(Number(n) || 0);
+const money = n =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD"
+  }).format(Number(n) || 0);
 
-const number = n =>new Intl.NumberFormat("pt-BR").format(Number(n) || 0);
+const number = n =>
+  new Intl.NumberFormat("pt-BR").format(Number(n) || 0);
 
-// ===============================// CARREGAR SESSÕES// ===============================
+
+// ===============================
+// CARREGAR SESSÕES
+// ===============================
 
 async function loadSessions() {
 
-const url =${SUPABASE_URL}/rest/v1/sessions?select=id,date,hands,starting_bankroll,ending_bankroll,rakeback&order=date.asc;
+  const url =
+    `${SUPABASE_URL}/rest/v1/sessions?select=id,date,hands,starting_bankroll,ending_bankroll,rakeback&order=date.asc`;
 
-const res = await fetch(url, {headers: {apikey: SUPABASE_ANON_KEY,Authorization: Bearer ${SUPABASE_ANON_KEY}}});
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
 
-if (!res.ok) {throw new Error("Não foi possível carregar as sessões.");}
+  if (!res.ok) {
+    throw new Error("Não foi possível carregar as sessões.");
+  }
 
-return await res.json();}
+  return await res.json();
+}
 
-// ===============================// LUCRO// ===============================
+
+// ===============================
+// LUCRO
+// ===============================
 
 function profit(row) {
 
-return (Number(row.ending_bankroll || 0) -Number(row.starting_bankroll || 0));
+  return (
+    Number(row.ending_bankroll || 0) -
+    Number(row.starting_bankroll || 0)
+  );
 
 }
 
-// ===============================// MÊS// ===============================
+
+// ===============================
+// MÊS
+// ===============================
 
 function monthKey(date) {
 
-return date.slice(0, 7);
+  return date.slice(0, 7);
 
 }
+
 
 function monthLabel(key) {
 
-const [y, m] = key.split("-");
+  const [y, m] = key.split("-");
 
-return new Intl.DateTimeFormat("pt-BR", {month: "long",year: "numeric"}).format(new Date(Number(y), Number(m) - 1, 1)).replace(/^./, c => c.toUpperCase());
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric"
+  })
+    .format(new Date(Number(y), Number(m) - 1, 1))
+    .replace(/^./, c => c.toUpperCase());
 
 }
 
-// ===============================// SELETOR DE MÊS// ===============================
+
+// ===============================
+// SELETOR DE MÊS
+// ===============================
 
 function fillMonths(rows) {
 
-const select =document.getElementById("monthSelect");
+  const select =
+    document.getElementById("monthSelect");
 
-const months = [...new Set(rows.map(r => monthKey(r.date)))].reverse();
+  const months = [
+    ...new Set(
+      rows.map(r => monthKey(r.date))
+    )
+  ].reverse();
 
-select.innerHTML = months.map(m =><option value="${m}">
+
+  select.innerHTML = months
+    .map(
+      m =>
+        `<option value="${m}">
           ${monthLabel(m)}
-        </option>).join("");
+        </option>`
+    )
+    .join("");
 
-if (months.length) {
 
-select.value = months[0];
+  if (months.length) {
+
+    select.value = months[0];
+
+  }
+
+
+  select.onchange = () => {
+
+    const selectedMonth =
+      select.value;
+
+    const filteredRows =
+      rows.filter(
+        r =>
+          monthKey(r.date) ===
+          selectedMonth
+      );
+
+    render(filteredRows);
+
+  };
 
 }
 
-select.onchange = () => {
 
-const selectedMonth =
-  select.value;
-
-const filteredRows =
-  rows.filter(
-    r =>
-      monthKey(r.date) ===
-      selectedMonth
-  );
-
-render(filteredRows);
-
-};
-
-}
-
-// ===============================// DASHBOARD DO MÊS// ===============================
+// ===============================
+// DASHBOARD DO MÊS
+// ===============================
 
 function render(rows) {
 
-const hands =rows.reduce((s, r) =>s + Number(r.hands || 0),0);
-
-const profitTotal =rows.reduce((s, r) =>s + profit(r),0);
-
-const rake =rows.reduce((s, r) =>s + Number(r.rakeback || 0),0);
-
-// Cards
-
-const handsElement =document.getElementById("hands");
-
-const profitElement =document.getElementById("profit");
-
-const rakebackElement =document.getElementById("rakeback");
-
-if (handsElement) {
-
-handsElement.textContent =
-  number(hands);
-
-}
-
-if (profitElement) {
-
-profitElement.textContent =
-  money(profitTotal);
-
-}
-
-if (rakebackElement) {
-
-rakebackElement.textContent =
-  money(rake);
-
-}
-
-// Histórico diário
-
-const tbody =document.getElementById("history");
-
-if (tbody) {
-
-tbody.innerHTML =
-  rows
-    .slice()
-    .reverse()
-    .map(r => {
-
-      const p =
-        profit(r);
-
-      const cls =
-        p >= 0
-          ? "profit-positive"
-          : "profit-negative";
+  const hands =
+    rows.reduce(
+      (s, r) =>
+        s + Number(r.hands || 0),
+      0
+    );
 
 
-      return `
+  const profitTotal =
+    rows.reduce(
+      (s, r) =>
+        s + profit(r),
+      0
+    );
+
+
+  const rake =
+    rows.reduce(
+      (s, r) =>
+        s + Number(r.rakeback || 0),
+      0
+    );
+
+
+  // Cards
+
+  const handsElement =
+    document.getElementById("hands");
+
+  const profitElement =
+    document.getElementById("profit");
+
+  const rakebackElement =
+    document.getElementById("rakeback");
+
+
+  if (handsElement) {
+
+    handsElement.textContent =
+      number(hands);
+
+  }
+
+
+  if (profitElement) {
+
+    profitElement.textContent =
+      money(profitTotal);
+
+  }
+
+
+  if (rakebackElement) {
+
+    rakebackElement.textContent =
+      money(rake);
+
+  }
+
+
+  // Histórico diário
+
+  const tbody =
+    document.getElementById("history");
+
+
+  if (tbody) {
+
+    tbody.innerHTML =
+      rows
+        .slice()
+        .reverse()
+        .map(r => {
+
+          const p =
+            profit(r);
+
+          const cls =
+            p >= 0
+              ? "profit-positive"
+              : "profit-negative";
+
+
+          return `
+            <tr>
+
+              <td>
+                ${new Date(
+                  r.date + "T00:00:00"
+                ).toLocaleDateString("pt-BR")}
+              </td>
+
+              <td>
+                ${number(r.hands)}
+              </td>
+
+              <td class="${cls}">
+                ${p >= 0 ? "+" : ""}
+                ${money(p)}
+              </td>
+
+              <td>
+                ${money(r.rakeback)}
+              </td>
+
+              <td>
+                ${money(r.ending_bankroll)}
+              </td>
+
+            </tr>
+          `;
+
+        })
+        .join("")
+      ||
+      `
         <tr>
-
-          <td>
-            ${new Date(
-              r.date + "T00:00:00"
-            ).toLocaleDateString("pt-BR")}
+          <td colspan="5" class="empty">
+            Nenhuma sessão registrada neste mês.
           </td>
-
-          <td>
-            ${number(r.hands)}
-          </td>
-
-          <td class="${cls}">
-            ${p >= 0 ? "+" : ""}
-            ${money(p)}
-          </td>
-
-          <td>
-            ${money(r.rakeback)}
-          </td>
-
-          <td>
-            ${money(r.ending_bankroll)}
-          </td>
-
         </tr>
       `;
 
-    })
-    .join("")
-  ||
-  `
-    <tr>
-      <td colspan="5" class="empty">
-        Nenhuma sessão registrada neste mês.
-      </td>
-    </tr>
-  `;
+  }
+
+
+  // Gráfico
+
+  drawChart(rows);
 
 }
 
-// Gráfico
 
-drawChart(rows);
-
-}
-
-// ===============================// GRÁFICO// ===============================
+// ===============================
+// GRÁFICO
+// ===============================
 
 function drawChart(rows) {
 
-const svg =document.getElementById("chart");
+  const svg =
+    document.getElementById("chart");
 
-if (!svg) return;
 
-svg.innerHTML = "";
+  if (!svg) return;
 
-if (!rows.length) return;
 
-const W = 900;const H = 330;
+  svg.innerHTML = "";
 
-const left = 70;const right = 25;const top = 25;const bottom = 55;
 
-const vals =rows.map(r => profit(r));
+  if (!rows.length) return;
 
-let min =Math.min(...vals, 0);
 
-let max =Math.max(...vals, 0);
+  const W = 900;
+  const H = 330;
 
-const range =max - min || 1;
+  const left = 70;
+  const right = 25;
+  const top = 25;
+  const bottom = 55;
 
-const step =Math.max(5,Math.ceil(range / 5 / 5) * 5);
 
-min =Math.floor(min / step) * step;
+  const vals =
+    rows.map(r => profit(r));
 
-max =Math.ceil(max / step) * step;
 
-if (min === max) {
+  let min =
+    Math.min(...vals, 0);
 
-min -= step;
-max += step;
+  let max =
+    Math.max(...vals, 0);
 
-}
 
-const chartWidth =W - left - right;
+  const range =
+    max - min || 1;
 
-const chartHeight =H - top - bottom;
 
-const x = i => {
+  const step =
+    Math.max(
+      5,
+      Math.ceil(range / 5 / 5) * 5
+    );
 
-if (rows.length === 1) {
 
-  return left +
-    chartWidth / 2;
+  min =
+    Math.floor(min / step) * step;
 
-}
+  max =
+    Math.ceil(max / step) * step;
 
-return (
-  left +
-  (i / (rows.length - 1)) *
-  chartWidth
-);
 
-};
+  if (min === max) {
 
-const y = value => {
+    min -= step;
+    max += step;
 
-return (
-  top +
-  (max - value) /
-  (max - min) *
-  chartHeight
-);
+  }
 
-};
 
-// Eixo vertical
+  const chartWidth =
+    W - left - right;
 
-svg.insertAdjacentHTML("beforeend",      <line
+  const chartHeight =
+    H - top - bottom;
+
+
+  const x = i => {
+
+    if (rows.length === 1) {
+
+      return left +
+        chartWidth / 2;
+
+    }
+
+    return (
+      left +
+      (i / (rows.length - 1)) *
+      chartWidth
+    );
+
+  };
+
+
+  const y = value => {
+
+    return (
+      top +
+      (max - value) /
+      (max - min) *
+      chartHeight
+    );
+
+  };
+
+
+  // Eixo vertical
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `
+      <line
         x1="${left}"
         y1="${top}"
         x2="${left}"
         y2="${H - bottom}"
         class="axis"
       />
-   );
+    `
+  );
 
-// Eixo horizontal
 
-svg.insertAdjacentHTML("beforeend",      <line
+  // Eixo horizontal
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `
+      <line
         x1="${left}"
         y1="${H - bottom}"
         x2="${W - right}"
         y2="${H - bottom}"
         class="axis"
       />
-   );
-
-// Escala vertical
-
-for (let value = min;value <= max;value += step) {
-
-const yy =
-  y(value);
+    `
+  );
 
 
-svg.insertAdjacentHTML(
-  "beforeend",
-  `
-    <line
-      x1="${left}"
-      y1="${yy}"
-      x2="${W - right}"
-      y2="${yy}"
-      class="gridline"
-    />
-  `
-);
+  // Escala vertical
+
+  for (
+    let value = min;
+    value <= max;
+    value += step
+  ) {
+
+    const yy =
+      y(value);
 
 
-const label =
-  value >= 0
-    ? `$${value}`
-    : `-$${Math.abs(value)}`;
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <line
+          x1="${left}"
+          y1="${yy}"
+          x2="${W - right}"
+          y2="${yy}"
+          class="gridline"
+        />
+      `
+    );
 
 
-svg.insertAdjacentHTML(
-  "beforeend",
-  `
-    <text
-      x="${left - 10}"
-      y="${yy + 4}"
-      text-anchor="end"
-      class="axis-label"
-    >
-      ${label}
-    </text>
-  `
-);
-
-}
-
-// Linha do zero
-
-if (min <= 0 &&max >= 0) {
-
-const zeroY =
-  y(0);
+    const label =
+      value >= 0
+        ? `$${value}`
+        : `-$${Math.abs(value)}`;
 
 
-svg.insertAdjacentHTML(
-  "beforeend",
-  `
-    <line
-      x1="${left}"
-      y1="${zeroY}"
-      x2="${W - right}"
-      y2="${zeroY}"
-      class="zero-line"
-    />
-  `
-);
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <text
+          x="${left - 10}"
+          y="${yy + 4}"
+          text-anchor="end"
+          class="axis-label"
+        >
+          ${label}
+        </text>
+      `
+    );
 
-}
-
-// Datas no eixo horizontal
-
-rows.forEach((row, i) => {
-
-const xx =
-  x(i);
+  }
 
 
-const day =
-  new Date(
-    row.date + "T00:00:00"
-  )
-    .getDate()
-    .toString()
-    .padStart(2, "0");
+  // Linha do zero
+
+  if (
+    min <= 0 &&
+    max >= 0
+  ) {
+
+    const zeroY =
+      y(0);
 
 
-svg.insertAdjacentHTML(
-  "beforeend",
-  `
-    <line
-      x1="${xx}"
-      y1="${H - bottom}"
-      x2="${xx}"
-      y2="${H - bottom + 5}"
-      class="tick"
-    />
-  `
-);
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <line
+          x1="${left}"
+          y1="${zeroY}"
+          x2="${W - right}"
+          y2="${zeroY}"
+          class="zero-line"
+        />
+      `
+    );
+
+  }
 
 
-svg.insertAdjacentHTML(
-  "beforeend",
-  `
-    <text
-      x="${xx}"
-      y="${H - bottom + 22}"
-      text-anchor="middle"
-      class="axis-label"
-    >
-      ${day}
-    </text>
-  `
-);
+  // Datas no eixo horizontal
 
-});
+  rows.forEach((row, i) => {
 
-// Linha do gráfico
+    const xx =
+      x(i);
 
-const points =vals.map((value, i) =>${x(i)},${y(value)}).join(" ");
 
-svg.insertAdjacentHTML("beforeend",      <polyline
-        points="${points}"
-        class="chartline"
-      />
-   );
+    const day =
+      new Date(
+        row.date + "T00:00:00"
+      )
+        .getDate()
+        .toString()
+        .padStart(2, "0");
 
-// Pontos
 
-vals.forEach((value, i) => {
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <line
+          x1="${xx}"
+          y1="${H - bottom}"
+          x2="${xx}"
+          y2="${H - bottom + 5}"
+          class="tick"
+        />
+      `
+    );
+
+
+    svg.insertAdjacentHTML(
+      "beforeend",
+      `
+        <text
+          x="${xx}"
+          y="${H - bottom + 22}"
+          text-anchor="middle"
+          class="axis-label"
+        >
+          ${day}
+        </text>
+      `
+    );
+
+  });
+
+
+  // Linha do gráfico
+
+  const points =
+    vals
+      .map(
+        (value, i) =>
+          `${x(i)},${y(value)}`
+      )
+      .join(" ");
+
 
   svg.insertAdjacentHTML(
     "beforeend",
     `
-      <circle
-        cx="${x(i)}"
-        cy="${y(value)}"
-        r="5"
-        class="dot"
+      <polyline
+        points="${points}"
+        class="chartline"
       />
     `
   );
 
-}
 
-);
+  // Pontos
 
-// Título eixo vertical
+  vals.forEach(
+    (value, i) => {
 
-svg.insertAdjacentHTML("beforeend",      <text
+      svg.insertAdjacentHTML(
+        "beforeend",
+        `
+          <circle
+            cx="${x(i)}"
+            cy="${y(value)}"
+            r="5"
+            class="dot"
+          />
+        `
+      );
+
+    }
+  );
+
+
+  // Título eixo vertical
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `
+      <text
         x="18"
         y="${top + chartHeight / 2}"
         text-anchor="middle"
@@ -434,11 +583,16 @@ svg.insertAdjacentHTML("beforeend",      <text
       >
         Lucro
       </text>
-   );
+    `
+  );
 
-// Título eixo horizontal
 
-svg.insertAdjacentHTML("beforeend",      <text
+  // Título eixo horizontal
+
+  svg.insertAdjacentHTML(
+    "beforeend",
+    `
+      <text
         x="${left + chartWidth / 2}"
         y="${H - 8}"
         text-anchor="middle"
@@ -446,181 +600,203 @@ svg.insertAdjacentHTML("beforeend",      <text
       >
         Dia
       </text>
-   );
+    `
+  );
 
 }
 
-// ===============================// HISTÓRICO MENSAL// ===============================
+
+// ===============================
+// HISTÓRICO MENSAL
+// ===============================
 
 function renderMonthlyHistory(rows) {
 
-const tbody =document.getElementById("monthlyHistory");
-
-if (!tbody) return;
-
-const months = {};
-
-rows.forEach(r => {
-
-const key =
-  monthKey(r.date);
+  const tbody =
+    document.getElementById(
+      "monthlyHistory"
+    );
 
 
-if (!months[key]) {
-
-  months[key] = {
-    hands: 0,
-    profit: 0
-  };
-
-}
+  if (!tbody) return;
 
 
-months[key].hands +=
-  Number(r.hands || 0);
+  const months = {};
 
 
-months[key].profit +=
-  profit(r);
+  rows.forEach(r => {
 
-});
-
-const monthList =Object.keys(months).sort().reverse();
-
-tbody.innerHTML =monthList.map(key => {
-
-    const data =
-      months[key];
+    const key =
+      monthKey(r.date);
 
 
-    const cls =
-      data.profit >= 0
-        ? "profit-positive"
-        : "profit-negative";
+    if (!months[key]) {
+
+      months[key] = {
+        hands: 0,
+        profit: 0
+      };
+
+    }
 
 
-    return `
+    months[key].hands +=
+      Number(r.hands || 0);
+
+
+    months[key].profit +=
+      profit(r);
+
+  });
+
+
+  const monthList =
+    Object.keys(months)
+      .sort()
+      .reverse();
+
+
+  tbody.innerHTML =
+    monthList
+      .map(key => {
+
+        const data =
+          months[key];
+
+
+        const cls =
+          data.profit >= 0
+            ? "profit-positive"
+            : "profit-negative";
+
+
+        return `
+          <tr>
+
+            <td>
+              ${monthLabel(key)}
+            </td>
+
+            <td>
+              ${number(data.hands)}
+            </td>
+
+            <td class="${cls}">
+              ${data.profit >= 0 ? "+" : ""}
+              ${money(data.profit)}
+            </td>
+
+          </tr>
+        `;
+
+      })
+      .join("");
+
+
+  if (!monthList.length) {
+
+    tbody.innerHTML = `
       <tr>
-
-        <td>
-          ${monthLabel(key)}
+        <td colspan="3" class="empty">
+          Nenhum resultado mensal registrado.
         </td>
-
-        <td>
-          ${number(data.hands)}
-        </td>
-
-        <td class="${cls}">
-          ${data.profit >= 0 ? "+" : ""}
-          ${money(data.profit)}
-        </td>
-
       </tr>
     `;
 
-  })
-  .join("");
-
-if (!monthList.length) {
-
-tbody.innerHTML = `
-  <tr>
-    <td colspan="3" class="empty">
-      Nenhum resultado mensal registrado.
-    </td>
-  </tr>
-`;
+  }
 
 }
 
-}
 
-// ===============================// INICIALIZAÇÃO// ===============================
+// ===============================
+// INICIALIZAÇÃO
+// ===============================
 
 (async () => {
 
-try {
+  try {
 
-if (
-  SUPABASE_URL.includes("COLE_AQUI")
-) {
+    if (
+      SUPABASE_URL.includes("COLE_AQUI")
+    ) {
 
-  throw new Error(
-    "Configure o Supabase em config.js."
-  );
+      throw new Error(
+        "Configure o Supabase em config.js."
+      );
 
-}
-
-
-const rows =
-  await loadSessions();
+    }
 
 
-// Histórico mensal recebe
-// TODAS as sessões
-
-renderMonthlyHistory(rows);
+    const rows =
+      await loadSessions();
 
 
-if (rows.length) {
+    // Histórico mensal recebe
+    // TODAS as sessões
 
-  // Cria o seletor de meses
-
-  fillMonths(rows);
-
-
-  // Pega o mês mais recente
-
-  const latestMonth =
-    monthKey(
-      rows[rows.length - 1].date
-    );
+    renderMonthlyHistory(rows);
 
 
-  // Filtra somente o mês atual
+    if (rows.length) {
 
-  const currentRows =
-    rows.filter(
-      r =>
-        monthKey(r.date) ===
-        latestMonth
-    );
+      // Cria o seletor de meses
+
+      fillMonths(rows);
 
 
-  // Dashboard recebe
-  // SOMENTE o mês atual
+      // Pega o mês mais recente
 
-  render(currentRows);
-
-} else {
-
-  render([]);
-
-}
-
-} catch (e) {
-
-console.error(e);
+      const latestMonth =
+        monthKey(
+          rows[rows.length - 1].date
+        );
 
 
-const history =
-  document.getElementById(
-    "history"
-  );
+      // Filtra somente o mês atual
+
+      const currentRows =
+        rows.filter(
+          r =>
+            monthKey(r.date) ===
+            latestMonth
+        );
 
 
-if (history) {
+      // Dashboard recebe
+      // SOMENTE o mês atual
 
-  history.innerHTML = `
-    <tr>
-      <td colspan="5" class="empty">
-        ${e.message}
-      </td>
-    </tr>
-  `;
+      render(currentRows);
 
-}
+    } else {
 
-}
+      render([]);
+
+    }
+
+
+  } catch (e) {
+
+    console.error(e);
+
+
+    const history =
+      document.getElementById(
+        "history"
+      );
+
+
+    if (history) {
+
+      history.innerHTML = `
+        <tr>
+          <td colspan="5" class="empty">
+            ${e.message}
+          </td>
+        </tr>
+      `;
+
+    }
+
+  }
 
 })();
