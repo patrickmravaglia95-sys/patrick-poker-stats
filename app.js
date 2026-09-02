@@ -15,7 +15,7 @@ const number = n =>
 async function loadSessions() {
 
   const url =
-    `${SUPABASE_URL}/rest/v1/sessions?select=id,date,hands,starting_bankroll,ending_bankroll,rakeback&order=date.asc`;
+    `${SUPABASE_URL}/rest/v1/sessions?select=id,date,hands,starting_bankroll,ending_bankroll,rakeback,limit&order=date.asc`;
 
   const res = await fetch(url, {
     headers: {
@@ -135,6 +135,13 @@ function render(rows) {
         s + Number(r.hands || 0),
       0
     );
+    const limitElement =
+    document.getElementById("limit");
+
+  if (limitElement && rows.length) {
+    limitElement.textContent =
+      rows[0].limit || "—";
+  }
 
 
   const profitTotal =
